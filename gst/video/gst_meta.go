@@ -10,8 +10,12 @@ import "C"
 import (
 	"unsafe"
 
+	"github.com/go-gst/go-glib/glib"
 	"github.com/go-gst/go-gst/gst"
 )
+
+// MetaAPIType returns a glib.Type for gst_video_meta_api_get_type.
+func MetaAPIType() glib.Type { return glib.Type(C.gst_video_meta_api_get_type()) }
 
 // CropMetaInfo contains extra buffer metadata describing image cropping.
 type CropMetaInfo struct {
