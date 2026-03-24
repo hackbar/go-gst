@@ -3,14 +3,19 @@ package video
 /*
 #include <gst/gst.h>
 #include <gst/video/video.h>
+
 */
 import "C"
 
 import (
 	"unsafe"
 
+	"github.com/go-gst/go-glib/glib"
 	"github.com/go-gst/go-gst/gst"
 )
+
+// MetaAPIType returns a glib.Type for gst_video_meta_api_get_type.
+func MetaAPIType() glib.Type { return glib.Type(C.gst_video_meta_api_get_type()) }
 
 // CropMetaInfo contains extra buffer metadata describing image cropping.
 type CropMetaInfo struct {
@@ -45,3 +50,79 @@ func (c *CropMetaInfo) Width() uint { return uint(c.Instance().width) }
 
 // Height returns the cropped height.
 func (c *CropMetaInfo) Height() uint { return uint(c.Instance().height) }
+
+// VideoMeta is extra buffer metadata describing image properties.
+type VideoMeta struct {
+	ptr *C.GstVideoMeta
+}
+
+// GetVideoMeta gets the VideoMeta from a buffer.
+func GetVideoMeta(buffer *gst.Buffer) *VideoMeta {
+	meta := C.gst_buffer_get_video_meta((*C.GstBuffer)(unsafe.Pointer(buffer.Instance())))
+	return &VideoMeta{(*C.GstVideoMeta)(unsafe.Pointer(meta))}
+}
+
+// Instance returns the underlying C GstVideoMeta instance.
+func (v *VideoMeta) Instance() *C.GstVideoMeta {
+	return v.ptr
+}
+
+// Meta returns the parent Meta instance.
+func (v *VideoMeta) Meta() *gst.Meta {
+	meta := v.Instance().meta
+	return gst.FromGstMetaUnsafe(unsafe.Pointer(&meta))
+}
+
+// Buffer returns the buffer this metadata belongs to.
+func (v *VideoMeta) Buffer() *gst.Buffer {
+	return gst.FromGstBufferUnsafeNone(unsafe.Pointer(v.Instance().buffer))
+}
+
+// Format returns the video format.
+func (v *VideoMeta) Format() Format {
+	return Format(v.Instance().format)
+}
+
+// ID returns the identifier of the frame.
+func (v *VideoMeta) ID() int {
+	return int(v.Instance().id)
+}
+
+// Width returns the video width.
+func (v *VideoMeta) Width() uint {
+	return uint(v.Instance().width)
+}
+
+// Height returns the video height.
+func (v *VideoMeta) Height() uint {
+	return uint(v.Instance().height)
+}
+
+// NPlanes returns the number of planes in the image
+func (v *VideoMeta) NPlanes() uint {
+	return uint(v.Instance().n_planes)
+}
+
+// Offset returns offsets for the planes.
+// This field might not always be valid.
+func (v *VideoMeta) Offset() []int64 {
+	size := len(v.Instance().offset)
+	offsets := make([]int64, size)
+	for i, o := range v.Instance().offset {
+		offsets[i] = int64(o)
+	}
+	return offsets
+
+}
+
+// Stride returns strides for the planes.
+// This field might not always be valid.
+func (v *VideoMeta) Stride() []int64 {
+	size := len(v.Instance().stride)
+	strides := make([]int64, size)
+	for i, s := range v.Instance().stride {
+		strides[i] = int64(s)
+	}
+	return strides
+
+}
