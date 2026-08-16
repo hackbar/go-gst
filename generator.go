@@ -104,6 +104,17 @@ var Data = genmain.Data{
 		MarkSDPMessageGettersAsBorrowed(),
 
 		GstLogFunctionDebugBorrows(),
+
+		gir.ModifySignal("GstApp-1.AppSink::propose-allocation", func(s *gir.Signal) {
+			for i, p := range s.Parameters.Parameters {
+				if p.Name == "query" {
+					s.Parameters.Parameters[i].TransferOwnership.TransferOwnership = "borrow"
+					return
+				}
+			}
+
+			panic("AppSink::propose-allocation signal does not have a query parameter")
+		}),
 	},
 	Config: typesystem.Config{
 		Namespaces: map[string]typesystem.NamespaceConfig{
@@ -367,6 +378,14 @@ var Data = genmain.Data{
 		},
 
 		MiniObjectExtenderReffing(),
+
+		// Query must be borrowed when marshaled from GValue so it remains writable in callbacks like ConnectProposeAllocation
+		func(r *typesystem.Registry) error {
+			gst := r.FindNamespaceByName("Gst-1")
+			q := gst.FindLocalTypeByGIRName("Query").(*typesystem.Record)
+			q.Marshaler.GlibGetType = ""
+			return nil
+		},
 	},
 }
 
