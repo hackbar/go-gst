@@ -309,6 +309,23 @@ var Data = genmain.Data{
 					// returns a gconstpointer to an array, manually implemented instead
 					typesystem.IgnoreMatching("VideoFormat.get_palette"),
 				},
+				ManualTypes: []typesystem.Type{
+					&typesystem.Record{
+						BaseType: typesystem.BaseType{
+							GirName: "VideoMeta",
+							GoTyp:   "VideoMeta",
+							CGoTyp:  "C.GstVideoMeta",
+							CTyp:    "GstVideoMeta",
+						},
+						BaseConversions: typesystem.BaseConversions{
+							FromGlibBorrowFunction: "UnsafeVideoMetaFromGlibBorrow",
+							FromGlibFullFunction:   "UnsafeVideoMetaFromGlibFull",
+							FromGlibNoneFunction:   "UnsafeVideoMetaFromGlibNone",
+							ToGlibNoneFunction:     "UnsafeVideoMetaToGlibNone",
+							ToGlibFullFunction:     "UnsafeVideoMetaToGlibFull",
+						},
+					},
+				},
 			},
 			"GstWebRTC-1": {
 				MinVersion: "1.26",
